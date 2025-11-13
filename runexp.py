@@ -33,17 +33,21 @@ list_model_name = [
 import random
 random.seed(SEED)
 import numpy as np
+import tensorflow as tf
 np.random.seed(SEED)
-from tensorflow import set_random_seed
-set_random_seed((SEED))
+# Below is deprecated in later versions of tf
+# from tensorflow import set_random_seed
+#set_random_seed((SEED))
+tf.random.set_seed((SEED))
 import json
 import os
+import sys
 import traffic_light_dqn
 import time
 
 PATH_TO_CONF = os.path.join("conf", setting_memo)
 
-sumoBinary = r"/usr/bin/sumo-gui"
+sumoBinary = os.path.join(sys.prefix,"bin/sumo-gui")
 sumoCmd = [sumoBinary,
            '-c',
            r'{0}/data/{1}/cross.sumocfg'.format(os.path.split(os.path.realpath(__file__))[0], setting_memo)]
@@ -52,7 +56,7 @@ sumoCmd_pretrain = [sumoBinary,
                     r'{0}/data/{1}/cross_pretrain.sumocfg'.format(
                         os.path.split(os.path.realpath(__file__))[0], setting_memo)]
 
-sumoBinary_nogui = r"/usr/bin/sumo"
+sumoBinary_nogui = os.path.join(sys.prefix,"bin/sumo-gui")
 sumoCmd_nogui = [sumoBinary_nogui,
                  '-c',
                  r'{0}/data/{1}/cross.sumocfg'.format(

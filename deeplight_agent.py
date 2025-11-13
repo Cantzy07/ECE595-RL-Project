@@ -10,7 +10,7 @@ Deep reinforcement learning agent
 import numpy as np
 from keras.layers import Input, Dense, Conv2D, Flatten, BatchNormalization, Activation, Multiply, Add
 from keras.models import Model, model_from_json, load_model
-from keras.optimizers import RMSprop
+from tensorflow.keras.optimizers import RMSprop
 from keras.callbacks import EarlyStopping, TensorBoard
 from keras.layers.merge import concatenate, add
 import random
