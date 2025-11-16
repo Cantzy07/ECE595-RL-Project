@@ -56,7 +56,7 @@ sumoCmd_pretrain = [sumoBinary,
                     r'{0}/data/{1}/cross_pretrain.sumocfg'.format(
                         os.path.split(os.path.realpath(__file__))[0], setting_memo)]
 
-sumoBinary_nogui = os.path.join(sys.prefix,"bin/sumo-gui")
+sumoBinary_nogui = os.path.join(sys.prefix,"bin/sumo")
 sumoCmd_nogui = [sumoBinary_nogui,
                  '-c',
                  r'{0}/data/{1}/cross.sumocfg'.format(

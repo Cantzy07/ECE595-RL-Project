@@ -376,19 +376,28 @@ def get_overall_queue_length(listLanes):
     overall_queue_length = 0
     for lane in listLanes:
         overall_queue_length += traci.lane.getLastStepHaltingNumber(lane)
+    #TODO:log output
     return overall_queue_length
+
+#TODO: Define method for queue length variance
 
 def get_overall_waiting_time(listLanes):
     overall_waiting_time = 0
     for lane in listLanes:
         overall_waiting_time += traci.lane.getWaitingTime(str(lane)) / 60.0
+    #TODO:log output
     return overall_waiting_time
+
+#TODO: Define method for waiting time variance
 
 def get_overall_delay(listLanes):
     overall_delay = 0
     for lane in listLanes:
         overall_delay += 1 - traci.lane.getLastStepMeanSpeed(str(lane)) / traci.lane.getMaxSpeed(str(lane))
+    #TODO:log output
     return overall_delay
+
+#TODO: Define method for delay variance
 
 def get_flickering(action):
     return action
