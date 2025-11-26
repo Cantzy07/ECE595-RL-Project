@@ -112,7 +112,7 @@ output:
 
 
 def start_sumo(sumo_cmd_str):
-    traci.start(sumo_cmd_str)
+    traci.start(sumo_cmd_str, port=5611)
     for i in range(20):
         traci.simulationStep()
 
@@ -337,8 +337,11 @@ def get_rewards_from_sumo(vehicle_dict, action, rewards_info_dict,
     vehicle_id_entering_list = get_vehicle_id_entering()
 
     reward_detail_dict['queue_length'].append(get_overall_queue_length(listLanes))
+    reward_detail_dict['queue_length_var'].append(get_lane_queue_variance(listLanes))
     reward_detail_dict['wait_time'].append(get_overall_waiting_time(listLanes))
+    reward_detail_dict['wait_time_var'].append(get_lane_waiting_variance(listLanes))
     reward_detail_dict['delay'].append(get_overall_delay(listLanes))
+    reward_detail_dict['delay_var'].append(get_lane_delay_variance(listLanes))
     reward_detail_dict['emergency'].append(get_num_of_emergency_stops(vehicle_dict))
     reward_detail_dict['duration'].append(get_travel_time_duration(vehicle_dict, vehicle_id_entering_list))
     reward_detail_dict['flickering'].append(get_flickering(action))
