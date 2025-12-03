@@ -12,6 +12,9 @@ data/cross.10_11_01.rou.xml
 data/cross.10_11_01.SOTL.rou.xml
 *.real.xml
 
+# venv
+.venv
+
 
 # regular exps
 *.log

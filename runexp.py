@@ -46,25 +46,61 @@ import traffic_light_dqn
 import time
 
 PATH_TO_CONF = os.path.join("conf", setting_memo)
+SUMO_HOME = r"C:/Program Files (x86)/Eclipse/Sumo"
 
-sumoBinary = os.path.join(sys.prefix,"bin/sumo-gui")
-sumoCmd = [sumoBinary,
-           '-c',
-           r'{0}/data/{1}/cross.sumocfg'.format(os.path.split(os.path.realpath(__file__))[0], setting_memo)]
-sumoCmd_pretrain = [sumoBinary,
-                    '-c',
-                    r'{0}/data/{1}/cross_pretrain.sumocfg'.format(
-                        os.path.split(os.path.realpath(__file__))[0], setting_memo)]
+sumo_home = os.environ.get("SUMO_HOME", r"C:/Program Files (x86)/Eclipse/Sumo")
+sumoBinary = os.path.join(sumo_home, "bin", "sumo-gui.exe")
+sumoBinary_nogui = os.path.join(sumo_home, "bin", "sumo.exe")
 
-sumoBinary_nogui = os.path.join(sys.prefix,"bin/sumo")
-sumoCmd_nogui = [sumoBinary_nogui,
-                 '-c',
-                 r'{0}/data/{1}/cross.sumocfg'.format(
-                     os.path.split(os.path.realpath(__file__))[0], setting_memo)]
-sumoCmd_nogui_pretrain = [sumoBinary_nogui,
-                          '-c',
-                          r'{0}/data/{1}/cross_pretrain.sumocfg'.format(
-                              os.path.split(os.path.realpath(__file__))[0], setting_memo)]
+sumoCmd = [
+    sumoBinary,
+    "-c",
+    r"{0}/data/{1}/cross.sumocfg".format(os.path.split(os.path.realpath(__file__))[0], setting_memo),
+]
+sumoCmd_pretrain = [
+    sumoBinary,
+    "-c",
+    r"{0}/data/{1}/cross_pretrain.sumocfg".format(
+        os.path.split(os.path.realpath(__file__))[0], setting_memo
+    ),
+]
+
+sumoCmd_nogui = [
+    sumoBinary_nogui,
+    "-c",
+    r"{0}/data/{1}/cross.sumocfg".format(
+        os.path.split(os.path.realpath(__file__))[0], setting_memo
+    ),
+]
+sumoCmd_nogui_pretrain = [
+    sumoBinary_nogui,
+    "-c",
+    r"{0}/data/{1}/cross_pretrain.sumocfg".format(
+        os.path.split(os.path.realpath(__file__))[0], setting_memo
+    ),
+]
+
+print("SUMO command:", sumoCmd_nogui)
+
+
+# sumoBinary = os.path.join(sys.prefix,"bin/sumo-gui")
+# sumoCmd = [sumoBinary,
+#            '-c',
+#            r'{0}/data/{1}/cross.sumocfg'.format(os.path.split(os.path.realpath(__file__))[0], setting_memo)]
+# sumoCmd_pretrain = [sumoBinary,
+#                     '-c',
+#                     r'{0}/data/{1}/cross_pretrain.sumocfg'.format(
+#                         os.path.split(os.path.realpath(__file__))[0], setting_memo)]
+
+# sumoBinary_nogui = os.path.join(sys.prefix,"bin/sumo")
+# sumoCmd_nogui = [sumoBinary_nogui,
+#                  '-c',
+#                  r'{0}/data/{1}/cross.sumocfg'.format(
+#                      os.path.split(os.path.realpath(__file__))[0], setting_memo)]
+# sumoCmd_nogui_pretrain = [sumoBinary_nogui,
+#                           '-c',
+#                           r'{0}/data/{1}/cross_pretrain.sumocfg'.format(
+#                               os.path.split(os.path.realpath(__file__))[0], setting_memo)]
 
 for model_name in list_model_name:
     for traffic_file, traffic_file_pretrain in list_traffic_files:
@@ -75,7 +111,7 @@ for model_name in list_model_name:
         if "real" in traffic_file[0]:
             dic_exp["RUN_COUNTS"] = 86400
         elif "2phase" in traffic_file[0]:
-            dic_exp["RUN_COUNTS"] = 72000
+            dic_exp["RUN_COUNTS"] = 600
         elif "synthetic" in traffic_file[0]:
             dic_exp["RUN_COUNTS"] = 216000
         json.dump(dic_exp, open(os.path.join(PATH_TO_CONF, "exp.conf"), "w"), indent=4)
