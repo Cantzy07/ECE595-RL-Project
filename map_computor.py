@@ -112,7 +112,12 @@ output:
 
 
 def start_sumo(sumo_cmd_str):
-    traci.start(sumo_cmd_str, port=5611)
+    try:
+        traci.start(sumo_cmd_str, port=5611)
+    except:
+        print("Connection already open. Closing previous and opening new")
+        traci.close()
+        traci.start(sumo_cmd_str, port=5611)
     for i in range(20):
         traci.simulationStep()
 
