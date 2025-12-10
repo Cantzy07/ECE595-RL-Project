@@ -75,15 +75,15 @@ for model_name in list_model_name:
         if "real" in traffic_file[0]:
             dic_exp["RUN_COUNTS"] = 86400
         elif "2phase" in traffic_file[0]:
-            dic_exp["RUN_COUNTS"] = 72
+            dic_exp["RUN_COUNTS"] = 72000
         elif "synthetic" in traffic_file[0]:
             dic_exp["RUN_COUNTS"] = 216000
         if "real" in traffic_file[0]:
             dic_exp["RUN_COUNTS_PRETRAINS"] = 86400
         elif "2phase" in traffic_file[0]:
-            dic_exp["RUN_COUNTS_PRETRAIN"] = 36
+            dic_exp["RUN_COUNTS_PRETRAIN"] = 36000
         elif "synthetic" in traffic_file[0]:
-            dic_exp["RUN_COUNTS_PRETRAIN"] = 216000
+            dic_exp["RUN_COUNTS_PRETRAIN"] = 103500
         json.dump(dic_exp, open(os.path.join(PATH_TO_CONF, "exp.conf"), "w"), indent=4)
 
         # change MIN_ACTION_TIME correspondingly
