@@ -14,6 +14,8 @@ SEED = 31200
 
 setting_memo = "one_run"
 
+ALGORITHM="PPO"
+
 
 # first column: for train, second column: for spre_train
 list_traffic_files = [
@@ -43,6 +45,7 @@ import json
 import os
 import sys
 import traffic_light_dqn
+import traffic_light_ppo
 import time
 
 PATH_TO_CONF = os.path.join("conf", setting_memo)
@@ -101,9 +104,22 @@ for model_name in list_model_name:
             dic_exp["TRAFFIC_FILE_PRETRAIN"],
             time.strftime('%m_%d_%H_%M_%S_', time.localtime(time.time())) + "seed_%d" % SEED
         )
-
-        traffic_light_dqn.main(memo=setting_memo, f_prefix=prefix, sumo_cmd_str=sumoCmd_nogui, sumo_cmd_pretrain_str=sumoCmd_nogui_pretrain)
-
+        if ALGORITHM == "PPO":
+            print(f"[PPO RUN] Starting PPO experiment with {traffic_file}")
+            traffic_light_ppo.TrafficLightPPO.main(
+                memo=setting_memo,
+                f_prefix=prefix,
+                sumo_cmd_str=sumoCmd_nogui,
+                epsilon=0.1,
+            )
+        elif list_model_name == "Deeplight":  # DQN
+            print(f"[DQN RUN] Starting DQN experiment with {traffic_file}")
+            traffic_light_dqn.main(
+                memo=setting_memo,
+                f_prefix=prefix,
+                sumo_cmd_str=sumoCmd_nogui,
+                sumo_cmd_pretrain_str=sumoCmd_nogui_pretrain,
+            )
         print("finished {0}".format(traffic_file))
     print ("finished {0}".format(model_name))
 

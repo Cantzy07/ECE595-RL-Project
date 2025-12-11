@@ -46,7 +46,7 @@ class SumoAgent:
             for key, value in dic_paras.items():
                 setattr(self, key, value)
 
-    def __init__(self, sumo_cmd_str, path_set, if_pretrain):
+    def __init__(self, sumo_cmd_str, path_set, if_pretrain=0):
 
         self.path_set = path_set
 

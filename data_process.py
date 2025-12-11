@@ -50,10 +50,10 @@ def timeavg(time,data,window):
         resultt.append(time[starti])
         endi=searchindx(starti,time,window)
         if endi>0:
-            resultd.append(1-np.mean(data[starti:endi+1]))
+            resultd.append(np.sum(np.multiply(time[starti:endi+1],data[starti:endi+1]))/np.sum(time[starti:endi+1]))
             starti=endi+1
         else:
-            resultd.append(1-np.mean(data[starti:-1]))
+            resultd.append(np.sum(np.multiply(time[starti:-1],data[starti:-1]))/np.sum(time[starti:-1]))
             break
     return resultt,resultd
 
@@ -96,7 +96,7 @@ ax1.legend([line1],['Traffic Ratio'],loc='lower right')
 ax2 = ax1.twinx()
 
 t2,percstat=timeavg(time,current_phase,wndavg)
-
+percstat = np.ones(np.size(percstat))-percstat
 color = 'tab:orange'
 ax2.set_ylabel("% of time for Green-WE")
 line2, = ax2.plot(t2,percstat,color=color)

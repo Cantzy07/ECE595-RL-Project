@@ -109,10 +109,10 @@ class PPOAgent(NetworkAgent):
 
         Xs = []
         for feature_name in self.para_set.LIST_STATE_FEATURE:
-            Xs.append(np.vstack([getattr(s, feature_name)[0] for s in states]))
+            Xs.append(np.vstack([getattr(s,feature_name) for s in states]))
 
         # values and old_probs
-        values = self.critic.predict(Xs).flatten()
+        values = self.critic.predict(Xs)
         old_probs = self.actor.predict(Xs)
 
         # compute returns
