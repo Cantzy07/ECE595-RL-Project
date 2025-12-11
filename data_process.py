@@ -5,7 +5,7 @@ import os
 import re
 
 
-SET_CONFIG=4
+SET_CONFIG=1
 
 
 def configset(num):

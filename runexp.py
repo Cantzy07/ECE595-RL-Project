@@ -14,7 +14,6 @@ SEED = 31200
 
 setting_memo = "one_run"
 
-ALGORITHM="PPO"
 
 
 # first column: for train, second column: for spre_train
@@ -26,7 +25,7 @@ list_traffic_files = [
 ]
 
 list_model_name = [
-                   "Deeplight",
+                   "PPO",
                    ]
 
 # ================================= only change these two ========================================
@@ -104,7 +103,7 @@ for model_name in list_model_name:
             dic_exp["TRAFFIC_FILE_PRETRAIN"],
             time.strftime('%m_%d_%H_%M_%S_', time.localtime(time.time())) + "seed_%d" % SEED
         )
-        if ALGORITHM == "PPO":
+        if model_name == "PPO":
             print(f"[PPO RUN] Starting PPO experiment with {traffic_file}")
             traffic_light_ppo.TrafficLightPPO.main(
                 memo=setting_memo,
@@ -112,7 +111,7 @@ for model_name in list_model_name:
                 sumo_cmd_str=sumoCmd_nogui,
                 epsilon=0.1,
             )
-        elif list_model_name == "Deeplight":  # DQN
+        elif model_name == "Deeplight":  # DQN
             print(f"[DQN RUN] Starting DQN experiment with {traffic_file}")
             traffic_light_dqn.main(
                 memo=setting_memo,
