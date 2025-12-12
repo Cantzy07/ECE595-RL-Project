@@ -18,7 +18,7 @@ prefix = (
 # construct sumo command structure; map_computor.start_sumo will use the last element as the config path
 base_dir = os.path.split(os.path.realpath(__file__))[0]
 sumo_cfg = os.path.join(base_dir, "data", memo, "cross.sumocfg")
-sumoCmd = ["sumo", "-c", sumo_cfg]
+sumoCmd = ["sumo-gui", "-c", sumo_cfg]
 
 print("Starting PPO experiment with config:", sumo_cfg)
 

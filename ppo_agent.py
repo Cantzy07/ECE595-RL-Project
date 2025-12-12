@@ -4,6 +4,7 @@ import tensorflow as tf
 from tensorflow.keras.layers import Input, Dense, Flatten, concatenate
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
+import random
 
 from network_agent import NetworkAgent, State
 from agent import Agent
@@ -90,8 +91,17 @@ class PPOAgent(NetworkAgent):
 
     def choose(self, count, if_pretrain=False):
         """Sample an action from the policy for current state."""
-        probs = self.actor.predict(self.convert_state_to_input(self.state))[0]
-        action = np.random.choice(len(probs), p=probs)
+        probs = self.actor.predict(self.convert_state_to_input(self.state),batch_size=self.batch_size)
+        if if_pretrain:
+            action = np.argmax(probs[0])
+        else:
+            if random.random() <= self.para_set.EPSILON:  # continue explore new Random Action
+                action = random.randrange(len(probs[0]))
+                print("##Explore")
+            else:  # exploitation
+                action = np.argmax(probs[0])
+            if self.para_set.EPSILON > 0.001 and count >= 20000:
+                self.para_set.EPSILON = self.para_set.EPSILON * 0.9999
         return action, probs
 
     def remember(self, state, action, reward, next_state):
@@ -106,14 +116,14 @@ class PPOAgent(NetworkAgent):
         actions = np.array([m[1] for m in self.episode_memory])
         rewards = np.array([m[2] for m in self.episode_memory])
         dones = np.array([m[4] for m in self.episode_memory]).astype(np.float32)
-
+        
         Xs = []
         for feature_name in self.para_set.LIST_STATE_FEATURE:
-            Xs.append(np.vstack([getattr(s, feature_name)[0] for s in states]))
+            Xs.append(np.vstack([getattr(s,feature_name) for s in states]))
 
         # values and old_probs
-        values = self.critic.predict(Xs).flatten()
-        old_probs = self.actor.predict(Xs)
+        values = self.critic.predict(Xs,batch_size=self.batch_size).flatten()
+        old_probs = self.actor.predict(Xs,batch_size=self.batch_size)
 
         # compute returns
         returns = np.zeros_like(rewards, dtype=np.float32)
@@ -174,7 +184,7 @@ class PPOAgent(NetworkAgent):
                         ratio, 1.0 - self.clip_eps, 1.0 + self.clip_eps
                     )
                     actor_loss = -tf.reduce_mean(
-                        tf.minimum(ratio * mb_advantages, clipped * mb_advantages)
+                        tf.minimum(ratio*mb_advantages, clipped*mb_advantages)
                     )
                     entropy = -tf.reduce_mean(
                         tf.reduce_sum(probs * tf.math.log(probs + 1e-8), axis=1)

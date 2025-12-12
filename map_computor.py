@@ -156,19 +156,12 @@ output:
 
 
 def start_sumo(sumo_cmd_str):
-    # Use the SUMO binary specified in the command, defaulting to non-GUI sumo
-    sumo_binary = sumo_cmd_str[0] if sumo_cmd_str else "sumo"
-    sumo_path = os.path.join(os.environ["SUMO_HOME"], "bin", sumo_binary)
-    cmd = [sumo_path, "-c", sumo_cmd_str[-1], "--start"]
-
-    # Ensure all elements are strings
-    cmd = [str(c) for c in cmd]
-
-    print(f"Starting SUMO with command: {' '.join(cmd)}")
-
-    traci.start(cmd, port=5611)
-    print(f"SUMO started via TraCI using {sumo_binary}.")
-
+    try:
+        traci.start(sumo_cmd_str, port=5611)
+    except:
+        print("Connection already open. Closing previous and opening new")
+        traci.close()
+        traci.start(sumo_cmd_str, port=5611)
     for i in range(20):
         traci.simulationStep()
 

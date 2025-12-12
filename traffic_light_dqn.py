@@ -180,10 +180,15 @@ class TrafficLightDQN:
             total_run_cnt = self.para_set.RUN_COUNTS
 
         # initialize output streams
-        file_name_memory = os.path.join(self.path_set.PATH_TO_OUTPUT, "memories.txt")
+        if if_pretrain:
+            file_name_memory = os.path.join(self.path_set.PATH_TO_OUTPUT, "memories_training.txt")
+        else:
+            file_name_memory = os.path.join(self.path_set.PATH_TO_OUTPUT, "memories.txt")
 
         # start sumo
-        s_agent = SumoAgent(sumo_cmd_str, self.path_set)
+        s_agent = SumoAgent(sumo_cmd_str,
+                            self.path_set,
+                            if_pretrain)
         current_time = s_agent.get_current_time()  # in seconds
 
         # start experiment
@@ -197,13 +202,15 @@ class TrafficLightDQN:
                     if ind_phase_time >= len(phase_traffic_ratios):
                         break
 
-                    s_agent = SumoAgent(sumo_cmd_str, self.path_set)
+                    s_agent = SumoAgent(sumo_cmd_str,
+                            self.path_set,
+                            if_pretrain)
                     current_time = s_agent.get_current_time()  # in seconds
 
                 phase_time_now = phase_traffic_ratios[ind_phase_time]
-
+            
             f_memory = open(file_name_memory, "a")
-
+            
             # get state
             state = s_agent.get_observation()
             state = self.agent.get_state(state, current_time)

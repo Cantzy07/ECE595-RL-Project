@@ -22,7 +22,7 @@ class TrafficLightPPO:
 
     DIC_AGENTS = {
         # for PPO experiments map the default model name to the PPO agent
-        "Deeplight": PPOAgent,
+        "PPO": PPOAgent,
     }
 
     NO_PRETRAIN_AGENTS = []

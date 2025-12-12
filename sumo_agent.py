@@ -46,7 +46,7 @@ class SumoAgent:
             for key, value in dic_paras.items():
                 setattr(self, key, value)
 
-    def __init__(self, sumo_cmd_str, path_set):
+    def __init__(self, sumo_cmd_str, path_set, if_pretrain=0):
 
         self.path_set = path_set
 
@@ -67,10 +67,10 @@ class SumoAgent:
 
         self.update_state()
         self.update_vehicles()
-
-        self.f_log_rewards = os.path.join(
-            self.path_set.PATH_TO_OUTPUT, "log_rewards.txt"
-        )
+        if if_pretrain:
+            self.f_log_rewards = os.path.join(self.path_set.PATH_TO_OUTPUT, "log_rewards_training.txt")
+        else:
+            self.f_log_rewards = os.path.join(self.path_set.PATH_TO_OUTPUT, "log_rewards.txt")
         if not os.path.exists(self.f_log_rewards):
             f = open(self.f_log_rewards, "w")
             list_reward_keys = np.sort(
