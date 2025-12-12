@@ -64,6 +64,10 @@ class PPOAgent(NetworkAgent):
         return inputs, shared
 
     def _build_networks(self, lr):
+        '''
+        extend _build_networks so the actor emits two heads: 
+        the existing softmax for phase selection and a second head that parameterizes your dwell time distribution
+        '''
         inputs = self._build_inputs()
         inputs, shared = self._build_flatten(inputs)
 
@@ -91,21 +95,16 @@ class PPOAgent(NetworkAgent):
 
     def choose(self, count, if_pretrain=False):
         """Sample an action from the policy for current state."""
-        probs = self.actor.predict(self.convert_state_to_input(self.state),batch_size=self.batch_size)
-        if if_pretrain:
-            action = np.argmax(probs[0])
-        else:
-            if random.random() <= self.para_set.EPSILON:  # continue explore new Random Action
-                action = random.randrange(len(probs[0]))
-                print("##Explore")
-            else:  # exploitation
-                action = np.argmax(probs[0])
-            if self.para_set.EPSILON > 0.001 and count >= 20000:
-                self.para_set.EPSILON = self.para_set.EPSILON * 0.9999
+        probs = self.actor.predict(self.convert_state_to_input(self.state))[0]
+        action = np.random.choice(len(probs), p=probs)
         return action, probs
 
     def remember(self, state, action, reward, next_state):
         # store tuple; log-probs and values will be computed at update time
+        '''
+         each stored transition should now include (state, phase_action, duration, reward, next_state, done) 
+         along with the log-probs of both outputs so the update step has everything it needs to recompute ratios without re-sampling.
+        '''
         self.episode_memory.append(
             (state, action, reward, next_state, state.if_terminal)
         )

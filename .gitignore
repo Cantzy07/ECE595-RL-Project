@@ -3,6 +3,7 @@ model/
 records/
 .idea/
 __pycache__/
+.venv/
 
 # files
 *TLS.switch.output.xml

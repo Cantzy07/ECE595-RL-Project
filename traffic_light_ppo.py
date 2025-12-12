@@ -138,6 +138,10 @@ class TrafficLightPPO:
         last_update_time = 0
 
         while current_time < total_run_cnt:
+            '''
+             the control loop currently expects choose to return (action, probs) and calls s_agent.take_action(action_pred). 
+             Change this to receive (phase_action, wait_time, aux_probs)
+            '''
 
             f_memory = open(file_name_memory, "a")
 
