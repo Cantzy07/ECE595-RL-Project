@@ -63,7 +63,9 @@ elif platform == "win32":
                 "Please set SUMO_HOME environment variable or install traci as python module!"
             )
 elif platform == "darwin":
-    os.environ["SUMO_HOME"] = "/Users/{0}/sumo/sumo-git".format(os.getlogin())
+    # Use the environment variable if set, otherwise use the default Homebrew path
+    if "SUMO_HOME" not in os.environ:
+        os.environ["SUMO_HOME"] = "/opt/homebrew/opt/sumo/share/sumo"
 
     try:
         import traci
@@ -154,8 +156,10 @@ output:
 
 
 def start_sumo(sumo_cmd_str):
-    sumo_gui_path = os.path.join(os.environ["SUMO_HOME"], "bin", "sumo-gui")
-    cmd = [sumo_gui_path, "-c", sumo_cmd_str[-1], "--start"]
+    # Use the SUMO binary specified in the command, defaulting to non-GUI sumo
+    sumo_binary = sumo_cmd_str[0] if sumo_cmd_str else "sumo"
+    sumo_path = os.path.join(os.environ["SUMO_HOME"], "bin", sumo_binary)
+    cmd = [sumo_path, "-c", sumo_cmd_str[-1], "--start"]
 
     # Ensure all elements are strings
     cmd = [str(c) for c in cmd]
@@ -163,7 +167,7 @@ def start_sumo(sumo_cmd_str):
     print(f"Starting SUMO with command: {' '.join(cmd)}")
 
     traci.start(cmd, port=5611)
-    print("SUMO GUI started via TraCI.")
+    print(f"SUMO started via TraCI using {sumo_binary}.")
 
     for i in range(20):
         traci.simulationStep()
