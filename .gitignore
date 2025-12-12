@@ -25,6 +25,7 @@ test_*.py
 *.csv
 *.png
 *-7days*.xml
+tfenv
 
 conf/Deeplight*
 data/Deeplight*
