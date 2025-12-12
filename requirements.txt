@@ -1,0 +1,17 @@
+# Python ecosystem baseline
+# Use CPython 3.9.13 (https://www.python.org/downloads/release/python-3913/) and create the venv via: python -m venv .venv
+
+# Core scientific stack
+numpy==1.22.4
+pandas==1.3.5
+matplotlib==3.5.3
+
+# Deep learning runtime (TensorFlow 2.10 is the last Windows release supporting Python 3.9)
+tensorflow==2.10.1
+keras==3.12.0
+h5py==3.8.0
+
+# SUMO/TraCI dependency (install manually, not via pip)
+# SUMO==1.18.0  # Download from https://sumo.dlr.de/docs/Installing.html, set SUMO_HOME, and add %SUMO_HOME%\tools to PYTHONPATH for TraCI.
+sumo
+traci

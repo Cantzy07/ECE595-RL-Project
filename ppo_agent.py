@@ -18,10 +18,11 @@ class PPOAgent(NetworkAgent):
     methods used by `traffic_light_ppo.py`.
     """
 
-    def __init__(self, num_phases, num_actions, path_set):
+    def __init__(self, num_phases, num_actions, dwell_times, path_set):
         super(PPOAgent, self).__init__(num_phases, path_set)
 
         self.num_actions = num_actions
+        self.num_dwell_times = dwell_times
 
         # hyper-parameters (fallbacks if not present in agent conf)
         self.clip_eps = getattr(self.para_set, "CLIP_EPS", 0.2)
@@ -64,24 +65,20 @@ class PPOAgent(NetworkAgent):
         return inputs, shared
 
     def _build_networks(self, lr):
-        '''
-        extend _build_networks so the actor emits two heads: 
-        the existing softmax for phase selection and a second head that parameterizes your dwell time distribution
-        '''
         inputs = self._build_inputs()
         inputs, shared = self._build_flatten(inputs)
 
-        # actor head
+        # actor head (1 head for phase selection, 1 head for dwell time)
         a_hidden = Dense(64, activation="tanh")(shared)
-        a_logits = Dense(self.num_actions, activation="softmax", name="actor_out")(
-            a_hidden
-        )
+        a_logits = Dense(self.num_actions, activation="softmax", name="actor_out")(a_hidden)
+        d_hidden = Dense(32, activation="tanh")(shared) # wait time
+        d_logits = Dense(self.num_dwell_times, activation="softmax", name="dwell_out")(d_hidden)
 
         # critic head
         c_hidden = Dense(64, activation="tanh")(shared)
         c_value = Dense(1, activation="linear", name="critic_out")(c_hidden)
 
-        self.actor = Model(inputs=list(inputs.values()), outputs=a_logits)
+        self.actor = Model(inputs=list(inputs.values()), outputs=[a_logits,d_logits])
         self.critic = Model(inputs=list(inputs.values()), outputs=c_value)
 
         self.actor_optimizer = Adam(learning_rate=lr)
@@ -95,18 +92,19 @@ class PPOAgent(NetworkAgent):
 
     def choose(self, count, if_pretrain=False):
         """Sample an action from the policy for current state."""
-        probs = self.actor.predict(self.convert_state_to_input(self.state))[0]
+        probs, dwell_probs = self.actor.predict(self.convert_state_to_input(self.state))[0]
         action = np.random.choice(len(probs), p=probs)
-        return action, probs
+        dwell_time = np.random.choice(len(dwell_probs), p=dwell_probs)
+        return action, dwell_time
 
-    def remember(self, state, action, reward, next_state):
+    def remember(self, state, action, wait_time, reward, next_state):
         # store tuple; log-probs and values will be computed at update time
         '''
          each stored transition should now include (state, phase_action, duration, reward, next_state, done) 
          along with the log-probs of both outputs so the update step has everything it needs to recompute ratios without re-sampling.
         '''
         self.episode_memory.append(
-            (state, action, reward, next_state, state.if_terminal)
+            (state, action, wait_time, reward, next_state, state.if_terminal)
         )
 
     def _prepare_batch(self):

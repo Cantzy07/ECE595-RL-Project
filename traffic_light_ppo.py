@@ -79,7 +79,7 @@ class TrafficLightPPO:
         )
 
         self.agent = self.DIC_AGENTS[self.para_set.MODEL_NAME](
-            num_phases=2, num_actions=2, path_set=self.path_set
+            num_phases=2, num_actions=2, dwell_times=32, path_set=self.path_set
         )
 
         self.epsilon = epsilon
@@ -138,30 +138,25 @@ class TrafficLightPPO:
         last_update_time = 0
 
         while current_time < total_run_cnt:
-            '''
-             the control loop currently expects choose to return (action, probs) and calls s_agent.take_action(action_pred). 
-             Change this to receive (phase_action, wait_time, aux_probs)
-            '''
-
             f_memory = open(file_name_memory, "a")
 
             # get state
             state = s_agent.get_observation()
             state = self.agent.get_state(state, current_time)
             # choose action from policy
-            action_pred, action_probs = self.agent.choose(
+            action_pred, dwell_time = self.agent.choose(
                 count=current_time, if_pretrain=False
             )
 
             # perform action in SUMO
-            reward, action = s_agent.take_action(action_pred)
+            reward, action = s_agent.take_action(action_pred, dwell_time)
 
             # get next state
             next_state = s_agent.get_observation()
             next_state = self.agent.get_next_state(next_state, current_time)
 
             # remember transition (on-policy)
-            self.agent.remember(state, action, reward, next_state)
+            self.agent.remember(state, action, dwell_time, reward, next_state)
 
             # log
             memory_str = (
@@ -169,6 +164,7 @@ class TrafficLightPPO:
                 % (
                     current_time,
                     action,
+                    dwell_time,
                     state.cur_phase[0][0],
                     state.next_phase[0][0],
                     reward,

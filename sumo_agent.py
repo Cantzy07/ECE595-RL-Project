@@ -92,22 +92,14 @@ class SumoAgent:
     def get_current_phase(self):
         return self.current_phase
 
-    def take_action(self, action):
-        '''
-        modify take_action (and likely take_action_pre_train) to accept a duration argument, 
-        convert it to simulation steps, and enforce constraints: respect MIN_PHASE_TIME before allowing a switch 
-        and cap the sampled duration to the configured min/max per phase. Instead of looping range(self.para_set.MIN_ACTION_TIME), 
-        loop range(n_steps) where n_steps = max(self.para_set.MIN_ACTION_TIME, sampled_duration_in_seconds), 
-        calling map_computor.run each second. Keep self.current_phase_duration in sync so State.time_this_phase remains meaningful.
-
-         if you need new hyper-parameters (e.g., min/max allowable wait seconds, standard deviation of the time prior), 
-         add them to sumo_agent.conf/exp.conf and surface them through SumoAgent.ParaSet
-        '''
+    def take_action(self, action, wait_time):
         current_phase_number = self.get_current_phase()
+        # shift the distribution so the minimum time is MIN ACTION TIME instead of 0
+        wait_time = wait_time + self.para_set.MIN_ACTION_TIME 
         rewards_detail_dict_list = []
         if (self.current_phase_duration < self.para_set.MIN_PHASE_TIME[current_phase_number]):
             action = 0
-        for i in range(self.para_set.MIN_ACTION_TIME):
+        for i in range(wait_time):
             action_in_second = 0
             current_phase_number = self.get_current_phase()
             if action == 1 and i == 0:
