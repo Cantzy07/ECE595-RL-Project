@@ -49,7 +49,9 @@ import time
 
 PATH_TO_CONF = os.path.join("conf", setting_memo)
 
-sumoBinary = os.path.join(sys.prefix,"bin/sumo-gui")
+SUMO_HOME = os.environ.get("SUMO_HOME", r"C:/Program Files (x86)/Eclipse/Sumo")
+
+sumoBinary = os.path.join(SUMO_HOME, "bin", "sumo-gui.exe")
 sumoCmd = [sumoBinary,
            '-c',
            r'{0}/data/{1}/cross.sumocfg'.format(os.path.split(os.path.realpath(__file__))[0], setting_memo)]
@@ -58,7 +60,7 @@ sumoCmd_pretrain = [sumoBinary,
                     r'{0}/data/{1}/cross_pretrain.sumocfg'.format(
                         os.path.split(os.path.realpath(__file__))[0], setting_memo)]
 
-sumoBinary_nogui = os.path.join(sys.prefix,"bin/sumo")
+sumoBinary_nogui = os.path.join(SUMO_HOME, "bin", "sumo.exe")
 sumoCmd_nogui = [sumoBinary_nogui,
                  '-c',
                  r'{0}/data/{1}/cross.sumocfg'.format(

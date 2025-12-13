@@ -160,7 +160,7 @@ class TrafficLightPPO:
 
             # log
             memory_str = (
-                "time = %d\taction = %d\tcurrent_phase = %d\tnext_phase = %d\treward = %f"
+                "time = %d\taction = %d\tdwell_time = %d\tcurrent_phase = %d\tnext_phase = %d\treward = %f"
                 % (
                     current_time,
                     action,

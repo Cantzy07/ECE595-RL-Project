@@ -40,7 +40,7 @@ if platform == "linux" or platform == "linux2":# this is linux
             raise EnvironmentError("Please set SUMO_HOME environment variable or install traci as python module!")
 
 elif platform == "win32":
-    os.environ['SUMO_HOME'] = 'C:\\Program Files (x86)\\DLR\\Sumo'
+    os.environ['SUMO_HOME'] = r"C:/Program Files (x86)/Eclipse/Sumo"
 
     try:
         import traci

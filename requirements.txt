@@ -8,10 +8,8 @@ matplotlib==3.5.3
 
 # Deep learning runtime (TensorFlow 2.10 is the last Windows release supporting Python 3.9)
 tensorflow==2.10.1
-keras==3.12.0
+keras==2.10.0
 h5py==3.8.0
 
 # SUMO/TraCI dependency (install manually, not via pip)
 # SUMO==1.18.0  # Download from https://sumo.dlr.de/docs/Installing.html, set SUMO_HOME, and add %SUMO_HOME%\tools to PYTHONPATH for TraCI.
-sumo
-traci

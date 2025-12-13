@@ -92,7 +92,9 @@ class PPOAgent(NetworkAgent):
 
     def choose(self, count, if_pretrain=False):
         """Sample an action from the policy for current state."""
-        probs, dwell_probs = self.actor.predict(self.convert_state_to_input(self.state))[0]
+        action_logits, dwell_logits = self.actor.predict(self.convert_state_to_input(self.state), verbose=0)
+        probs = action_logits[0]
+        dwell_probs = dwell_logits[0]
         action = np.random.choice(len(probs), p=probs)
         dwell_time = np.random.choice(len(dwell_probs), p=dwell_probs)
         return action, dwell_time
@@ -110,17 +112,24 @@ class PPOAgent(NetworkAgent):
     def _prepare_batch(self):
         # Convert episode memory into arrays for training
         states = [m[0] for m in self.episode_memory]
-        actions = np.array([m[1] for m in self.episode_memory])
-        rewards = np.array([m[2] for m in self.episode_memory])
-        dones = np.array([m[4] for m in self.episode_memory]).astype(np.float32)
+        actions = np.array([m[1] for m in self.episode_memory], dtype=np.int32).reshape(-1)
+        wait_times = np.array([m[2] for m in self.episode_memory], dtype=np.int32).reshape(-1)
+        rewards = np.array([m[3] for m in self.episode_memory])
+        dones = np.array([m[5] for m in self.episode_memory]).astype(np.float32)
         
         Xs = []
         for feature_name in self.para_set.LIST_STATE_FEATURE:
             Xs.append(np.vstack([getattr(s,feature_name) for s in states]))
 
         # values and old_probs
-        values = self.critic.predict(Xs,batch_size=self.batch_size).flatten()
-        old_probs = self.actor.predict(Xs,batch_size=self.batch_size)
+        values = self.critic.predict(Xs, batch_size=self.batch_size).flatten()
+        old_action_logits, old_wait_logits = self.actor.predict(Xs, batch_size=self.batch_size)
+        old_action_probs = np.sum(
+            old_action_logits * np.eye(self.num_actions)[actions], axis=1
+        ).astype(np.float32)
+        old_wait_probs = np.sum(
+            old_wait_logits * np.eye(self.num_dwell_times)[wait_times], axis=1
+        ).astype(np.float32)
 
         # compute returns
         returns = np.zeros_like(rewards, dtype=np.float32)
@@ -132,13 +141,15 @@ class PPOAgent(NetworkAgent):
         advantages = returns - values
         advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
 
-        return Xs, actions, old_probs, returns, advantages
+        return Xs, actions, old_action_probs, wait_times, old_wait_probs, returns, advantages
 
     def update_network(self, if_pretrain, use_average, current_time):
         if len(self.episode_memory) == 0:
             return
 
-        Xs, actions, old_probs, returns, advantages = self._prepare_batch()
+        Xs, actions, old_action_probs, wait_times, old_wait_probs, returns, advantages = self._prepare_batch()
+        old_action_probs = np.asarray(old_action_probs, dtype=np.float32)
+        old_wait_probs = np.asarray(old_wait_probs, dtype=np.float32)
 
         dataset_size = len(actions)
 
@@ -152,7 +163,9 @@ class PPOAgent(NetworkAgent):
 
                 mb_Xs = [x[mb_idx] for x in Xs]
                 mb_actions = actions[mb_idx]
-                mb_old_probs = old_probs[mb_idx]
+                mb_old_action_probs = old_action_probs[mb_idx]
+                mb_wait_times = wait_times[mb_idx]
+                mb_old_wait_probs = old_wait_probs[mb_idx]
                 mb_returns = returns[mb_idx]
                 mb_advantages = advantages[mb_idx]
 
@@ -167,26 +180,31 @@ class PPOAgent(NetworkAgent):
 
                 # train actor with clipped surrogate objective
                 with tf.GradientTape() as tape_a:
-                    probs = self.actor(mb_Xs, training=True)
+                    action_logits, dwell_logits = self.actor(mb_Xs, training=True)
                     action_probs = tf.reduce_sum(
-                        probs * tf.one_hot(mb_actions, self.num_actions), axis=1
+                        action_logits * tf.one_hot(mb_actions, self.num_actions), axis=1
                     )
-                    old_action_probs = tf.reduce_sum(
-                        tf.constant(mb_old_probs, dtype=tf.float32)
-                        * tf.one_hot(mb_actions, self.num_actions),
-                        axis=1,
+                    wait_probs = tf.reduce_sum(
+                        dwell_logits * tf.one_hot(mb_wait_times, self.num_dwell_times), axis=1
                     )
-                    ratio = action_probs / (old_action_probs + 1e-8)
+                    old_action_probs_t = tf.constant(mb_old_action_probs, dtype=tf.float32)
+                    old_wait_probs_t = tf.constant(mb_old_wait_probs, dtype=tf.float32)
+                    ratio = (action_probs / (old_action_probs_t + 1e-8)) * (
+                        wait_probs / (old_wait_probs_t + 1e-8)
+                    )
                     clipped = tf.clip_by_value(
                         ratio, 1.0 - self.clip_eps, 1.0 + self.clip_eps
                     )
                     actor_loss = -tf.reduce_mean(
                         tf.minimum(ratio*mb_advantages, clipped*mb_advantages)
                     )
-                    entropy = -tf.reduce_mean(
-                        tf.reduce_sum(probs * tf.math.log(probs + 1e-8), axis=1)
+                    entropy_action = -tf.reduce_mean(
+                        tf.reduce_sum(action_logits * tf.math.log(action_logits + 1e-8), axis=1)
                     )
-                    total_loss = actor_loss - self.entropy_coef * entropy
+                    entropy_wait = -tf.reduce_mean(
+                        tf.reduce_sum(dwell_logits * tf.math.log(dwell_logits + 1e-8), axis=1)
+                    )
+                    total_loss = actor_loss - self.entropy_coef * (entropy_action + entropy_wait)
                 grads_a = tape_a.gradient(total_loss, self.actor.trainable_variables)
                 self.actor_optimizer.apply_gradients(
                     zip(grads_a, self.actor.trainable_variables)
