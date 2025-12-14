@@ -61,7 +61,7 @@ class TrafficLightPPO:
             self.TRAFFIC_FILE = dic_paras["TRAFFIC_FILE"]
             self.TRAFFIC_FILE_PRETRAIN = dic_paras["TRAFFIC_FILE_PRETRAIN"]
 
-    def __init__(self, memo, f_prefix, epsilon):
+    def __init__(self, memo, f_prefix):
 
         self.path_set = self.PathSet(
             os.path.join("conf", memo),
@@ -82,7 +82,6 @@ class TrafficLightPPO:
             num_phases=2, num_actions=2, path_set=self.path_set
         )
 
-        self.epsilon = epsilon
 
     def load_conf(self, conf_file):
 
@@ -177,14 +176,14 @@ class TrafficLightPPO:
             current_time = s_agent.get_current_time()  # in seconds
 
             # periodically update PPO (on-policy)
-            if hasattr(self.para_set, "UPDATE_PERIOD"):
-                update_period = self.para_set.UPDATE_PERIOD
+            if hasattr(self.agent.para_set, "UPDATE_PERIOD"):
+                update_period = int(getattr(self.agent.para_set,"UPDATE_PERIOD"))
             else:
                 update_period = 300
 
             if current_time - last_update_time >= update_period:
-                batch_size = len(self.agent.episode_memory)
-                print(f"[PPO UPDATE] time={current_time}, batch_size={batch_size}")
+                memory_size = len(self.agent.episode_memory)
+                print(f"[PPO UPDATE] time={current_time}, memory_size={memory_size}")
                 self.agent.update_network(
                     if_pretrain=False,
                     use_average=use_average,
@@ -197,7 +196,7 @@ class TrafficLightPPO:
         # final update if any remaining transitions
         if len(self.agent.episode_memory) > 0:
             print(
-                f"[PPO FINAL UPDATE] time={current_time}, batch_size={len(self.agent.episode_memory)}"
+                f"[PPO FINAL UPDATE] time={current_time}, memory_size={len(self.agent.episode_memory)}"
             )
             self.agent.update_network(
                 if_pretrain=False, use_average=use_average, current_time=current_time
@@ -206,8 +205,8 @@ class TrafficLightPPO:
             print(f"[PPO SAVED] final checkpoint saved: final_ckpt_{int(current_time)}")
 
     @staticmethod
-    def main(memo, f_prefix, sumo_cmd_str, sumo_cmd_pretrain_str=None, epsilon=0.1):
-        player = TrafficLightPPO(memo, f_prefix, epsilon)
+    def main(memo, f_prefix, sumo_cmd_str, sumo_cmd_pretrain_str=None):
+        player = TrafficLightPPO(memo, f_prefix)
         player.set_traffic_file()
         # PPO is on-policy, so no pretrain phase in this repo's default design
         player.run(sumo_cmd_str, use_average=False)

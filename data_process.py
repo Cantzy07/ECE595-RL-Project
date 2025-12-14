@@ -46,7 +46,7 @@ def timeavg(time,data,window):
     resultt = []
     resultd = []
     starti=0
-    while(1):
+    while(starti<len(time)):
         resultt.append(time[starti])
         endi=searchindx(starti,time,window)
         if endi>0:
@@ -73,8 +73,7 @@ for row in f1:
     current_phase.append(int(row[8]))
     reward.append(float(row[14]))
 
-
-wndavg=2000
+wndavg=200
 t0,rewardavg=timeavg(time,reward,wndavg)
 plt.figure(1)    
 plt.title("Rewards over time")
@@ -91,8 +90,8 @@ fig2, ax1 = plt.subplots()
 color = '0'
 ax1.set_xlabel('seconds')
 ax1.set_ylabel('traffic ratio')
-line1, = ax1.plot(t,cf_data,color=color,linestyle='--')
-ax1.legend([line1],['Traffic Ratio'],loc='lower right')
+# line1, = ax1.plot(t,cf_data,color=color,linestyle='--')
+# ax1.legend([line1],['Traffic Ratio'],loc='lower right')
 ax2 = ax1.twinx()
 
 t2,percstat=timeavg(time,current_phase,wndavg)
@@ -123,23 +122,22 @@ datalines = f2.readlines()
 for line in datalines:
     
     line = line.split(',')
-    if float(line[0])>700:
-        count.append(float(line[0]))
-        delay.append(float(line[2]))
-        delay_var.append(float(line[3]))
-        duration.append(float(line[4]))
-        queue_length.append(float(line[12]))
-        queue_length_var.append(float(line[13]))
-        wait_time.append(float(line[14]))
-        wait_time_var.append(float(line[15]))
+    count.append(float(line[0]))
+    delay.append(float(line[2]))
+    delay_var.append(float(line[3]))
+    duration.append(float(line[4]))
+    queue_length.append(float(line[12]))
+    queue_length_var.append(float(line[13]))
+    wait_time.append(float(line[14]))
+    wait_time_var.append(float(line[15]))
     
 fig3, ax3 = plt.subplots()
-ax3.set_title('Queue Length')
+ax3.set_title('Delay')
 ax3.set_xlabel('Count')
-ax3.set_ylabel('Length (Variance)')
-line3, =ax3.plot(count,duration,c='r')
-# line4, =ax3.plot(count,queue_length_var,c='b')
-# ax3.legend([line3,line4],['Queue Length','Queue Length Variance'])
+ax3.set_ylabel('Time (Variance)')
+line3, =ax3.plot(count,queue_length,c='r')
+line4, =ax3.plot(count,queue_length_var,c='b')
+ax3.legend([line3,line4],['Length','Length Variance'])
 df=pd.DataFrame({
     "Model Name": ["Intellilight"],
     "Reward": [np.mean(reward)],
