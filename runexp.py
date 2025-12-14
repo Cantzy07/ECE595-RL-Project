@@ -97,14 +97,14 @@ for model_name in list_model_name:
         if "real" in traffic_file[0]:
             dic_exp["RUN_COUNTS"] = 86400
         elif "2phase" in traffic_file[0]:
-            dic_exp["RUN_COUNTS"] = 72000
+            dic_exp["RUN_COUNTS"] = 7200
         elif "synthetic" in traffic_file[0]:
             dic_exp["RUN_COUNTS"] = 216000
 
         if "real" in traffic_file[0]:
             dic_exp["RUN_COUNTS_PRETRAINS"] = 86400
         elif "2phase" in traffic_file[0]:
-            dic_exp["RUN_COUNTS_PRETRAIN"] = 36000
+            dic_exp["RUN_COUNTS_PRETRAIN"] = 3600
         elif "synthetic" in traffic_file[0]:
             dic_exp["RUN_COUNTS_PRETRAIN"] = 103500
         json.dump(dic_exp, open(os.path.join(PATH_TO_CONF, "exp.conf"), "w"), indent=4)
@@ -115,7 +115,7 @@ for model_name in list_model_name:
         if model_name == "Deeplight":
             dic_sumo["MIN_ACTION_TIME"] = 5
         else:
-            dic_sumo["MIN_ACTION_TIME"] = 1
+            dic_sumo["MIN_ACTION_TIME"] = 5
         json.dump(
             dic_sumo, open(os.path.join(PATH_TO_CONF, "sumo_agent.conf"), "w"), indent=4
         )
@@ -130,10 +130,7 @@ for model_name in list_model_name:
         if model_name == "PPO":
             print(f"[PPO RUN] Starting PPO experiment with {traffic_file}")
             traffic_light_ppo.TrafficLightPPO.main(
-                memo=setting_memo,
-                f_prefix=prefix,
-                sumo_cmd_str=sumoCmd_nogui,
-                epsilon=0.1,
+                memo=setting_memo, f_prefix=prefix, sumo_cmd_str=sumoCmd_nogui
             )
         elif model_name == "Deeplight":  # DQN
             print(f"[DQN RUN] Starting DQN experiment with {traffic_file}")

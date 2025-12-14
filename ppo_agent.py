@@ -4,7 +4,7 @@ import tensorflow as tf
 from tensorflow.keras.layers import Input, Dense, Flatten, concatenate
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
-import random
+import numpy as np
 
 from network_agent import NetworkAgent, State
 from agent import Agent
@@ -66,19 +66,25 @@ class PPOAgent(NetworkAgent):
     def _build_networks(self, lr):
         inputs = self._build_inputs()
         inputs, shared = self._build_flatten(inputs)
+        
+        body = Dense(128, activation='relu')(shared)
+        body = Dense(128, activation='relu')(body)
 
         # actor head
-        a_hidden = Dense(64, activation="tanh")(shared)
-        a_logits = Dense(self.num_actions, activation="softmax", name="actor_out")(
-            a_hidden
+        # a_hidden = Dense(32, activation="relu")(shared)
+        a_logits = Dense(self.num_actions, activation='softmax', name="actor_out")(
+            body
         )
 
+        body = Dense(128, activation='relu')(shared)
+        body = Dense(128, activation='relu')(body)
         # critic head
-        c_hidden = Dense(64, activation="tanh")(shared)
-        c_value = Dense(1, activation="linear", name="critic_out")(c_hidden)
+        # c_hidden = Dense(32, activation="relu")(shared)
+        c_value = Dense(1, activation='linear',name="critic_out")(body)
 
         self.actor = Model(inputs=list(inputs.values()), outputs=a_logits)
         self.critic = Model(inputs=list(inputs.values()), outputs=c_value)
+        
 
         self.actor_optimizer = Adam(learning_rate=lr)
         self.critic_optimizer = Adam(learning_rate=lr)
@@ -91,18 +97,9 @@ class PPOAgent(NetworkAgent):
 
     def choose(self, count, if_pretrain=False):
         """Sample an action from the policy for current state."""
-        probs = self.actor.predict(self.convert_state_to_input(self.state),batch_size=self.batch_size)
-        if if_pretrain:
-            action = np.argmax(probs[0])
-        else:
-            if random.random() <= self.para_set.EPSILON:  # continue explore new Random Action
-                action = random.randrange(len(probs[0]))
-                print("##Explore")
-            else:  # exploitation
-                action = np.argmax(probs[0])
-            if self.para_set.EPSILON > 0.001 and count >= 20000:
-                self.para_set.EPSILON = self.para_set.EPSILON * 0.9999
-        return action, probs
+        probs = self.actor.predict(self.convert_state_to_input(self.state)).flatten()
+        action = np.random.choice([0,1],p=probs)
+        return int(action),probs
 
     def remember(self, state, action, reward, next_state):
         # store tuple; log-probs and values will be computed at update time
@@ -122,8 +119,8 @@ class PPOAgent(NetworkAgent):
             Xs.append(np.vstack([getattr(s,feature_name) for s in states]))
 
         # values and old_probs
-        values = self.critic.predict(Xs,batch_size=self.batch_size).flatten()
-        old_probs = self.actor.predict(Xs,batch_size=self.batch_size)
+        values = self.critic.predict(Xs).flatten()
+        old_probs = self.actor.predict(Xs)
 
         # compute returns
         returns = np.zeros_like(rewards, dtype=np.float32)
@@ -142,6 +139,7 @@ class PPOAgent(NetworkAgent):
             return
 
         Xs, actions, old_probs, returns, advantages = self._prepare_batch()
+        mse = tf.keras.losses.MeanSquaredError()
 
         dataset_size = len(actions)
 
@@ -161,8 +159,8 @@ class PPOAgent(NetworkAgent):
 
                 # train critic
                 with tf.GradientTape() as tape_c:
-                    values_pred = tf.squeeze(self.critic(mb_Xs, training=True), axis=1)
-                    critic_loss = tf.reduce_mean(tf.square(mb_returns - values_pred))
+                    values_pred = tf.squeeze(self.critic(mb_Xs, training=False), axis=1)
+                    critic_loss = mse(mb_returns,values_pred)
                 grads_c = tape_c.gradient(critic_loss, self.critic.trainable_variables)
                 self.critic_optimizer.apply_gradients(
                     zip(grads_c, self.critic.trainable_variables)
@@ -170,7 +168,7 @@ class PPOAgent(NetworkAgent):
 
                 # train actor with clipped surrogate objective
                 with tf.GradientTape() as tape_a:
-                    probs = self.actor(mb_Xs, training=True)
+                    probs = self.actor(mb_Xs, training=False)
                     action_probs = tf.reduce_sum(
                         probs * tf.one_hot(mb_actions, self.num_actions), axis=1
                     )
