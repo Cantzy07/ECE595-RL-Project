@@ -67,20 +67,17 @@ class PPOAgent(NetworkAgent):
         inputs = self._build_inputs()
         inputs, shared = self._build_flatten(inputs)
         
-        body = Dense(128, activation='relu')(shared)
-        body = Dense(128, activation='relu')(body)
+
 
         # actor head
-        # a_hidden = Dense(32, activation="relu")(shared)
+        a_hidden = Dense(32, activation="tanh")(shared)
         a_logits = Dense(self.num_actions, activation='softmax', name="actor_out")(
-            body
+            a_hidden
         )
 
-        body = Dense(128, activation='relu')(shared)
-        body = Dense(128, activation='relu')(body)
         # critic head
-        # c_hidden = Dense(32, activation="relu")(shared)
-        c_value = Dense(1, activation='linear',name="critic_out")(body)
+        c_hidden = Dense(32, activation="tanh")(shared)
+        c_value = Dense(1, activation='linear',name="critic_out")(c_hidden)
 
         self.actor = Model(inputs=list(inputs.values()), outputs=a_logits)
         self.critic = Model(inputs=list(inputs.values()), outputs=c_value)

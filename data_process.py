@@ -5,7 +5,7 @@ import os
 import re
 
 
-SET_CONFIG=1
+SET_CONFIG=3
 
 
 def configset(num):
@@ -73,7 +73,7 @@ for row in f1:
     current_phase.append(int(row[8]))
     reward.append(float(row[14]))
 
-wndavg=200
+wndavg=500
 t0,rewardavg=timeavg(time,reward,wndavg)
 plt.figure(1)    
 plt.title("Rewards over time")
@@ -90,8 +90,8 @@ fig2, ax1 = plt.subplots()
 color = '0'
 ax1.set_xlabel('seconds')
 ax1.set_ylabel('traffic ratio')
-# line1, = ax1.plot(t,cf_data,color=color,linestyle='--')
-# ax1.legend([line1],['Traffic Ratio'],loc='lower right')
+line1, = ax1.plot(t,cf_data,color=color,linestyle='--')
+ax1.legend([line1],['Traffic Ratio'],loc='lower right')
 ax2 = ax1.twinx()
 
 t2,percstat=timeavg(time,current_phase,wndavg)
@@ -99,7 +99,7 @@ percstat = np.ones(np.size(percstat))-percstat
 color = 'tab:orange'
 ax2.set_ylabel("% of time for Green-WE")
 line2, = ax2.plot(t2,percstat,color=color)
-ax2.legend([line2],['Intellilight'],loc='upper right')
+ax2.legend([line2],['Hellalight'],loc='upper right')
 
 fig2.tight_layout()
 
@@ -134,12 +134,12 @@ for line in datalines:
 fig3, ax3 = plt.subplots()
 ax3.set_title('Delay')
 ax3.set_xlabel('Count')
-ax3.set_ylabel('Time (Variance)')
+ax3.set_ylabel('Length (Variance)')
 line3, =ax3.plot(count,queue_length,c='r')
 line4, =ax3.plot(count,queue_length_var,c='b')
 ax3.legend([line3,line4],['Length','Length Variance'])
 df=pd.DataFrame({
-    "Model Name": ["Intellilight"],
+    "Model Name": ["PPO"],
     "Reward": [np.mean(reward)],
     "Queue Length": [np.mean(queue_length)],
     "Delay": [np.mean(delay)],
