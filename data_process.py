@@ -32,8 +32,7 @@ def newest(DIR_PATH,num):
 
     files = os.listdir(DIR_PATH)
     FILE_LIST = [os.path.join(DIR_PATH, BASENAME) for BASENAME in files if bool(re.search(search_string,BASENAME))]
-    sortedfiles = sorted(FILE_LIST, key=os.path.getctime)
-    return sortedfiles[-2]
+    return max(FILE_LIST, key=os.path.getctime)
 
 def searchindx(starti,time,diff):
     indx=-1
