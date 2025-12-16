@@ -5,7 +5,7 @@ import os
 import re
 
 
-SET_CONFIG=3
+SET_CONFIG=4
 
 
 def configset(num):
@@ -32,7 +32,8 @@ def newest(DIR_PATH,num):
 
     files = os.listdir(DIR_PATH)
     FILE_LIST = [os.path.join(DIR_PATH, BASENAME) for BASENAME in files if bool(re.search(search_string,BASENAME))]
-    return max(FILE_LIST, key=os.path.getctime)
+    sortedfiles = sorted(FILE_LIST, key=os.path.getctime)
+    return sortedfiles[-2]
 
 def searchindx(starti,time,diff):
     indx=-1
@@ -73,7 +74,7 @@ for row in f1:
     current_phase.append(int(row[8]))
     reward.append(float(row[14]))
 
-wndavg=500
+wndavg=2000
 t0,rewardavg=timeavg(time,reward,wndavg)
 plt.figure(1)    
 plt.title("Rewards over time")
@@ -99,7 +100,7 @@ percstat = np.ones(np.size(percstat))-percstat
 color = 'tab:orange'
 ax2.set_ylabel("% of time for Green-WE")
 line2, = ax2.plot(t2,percstat,color=color)
-ax2.legend([line2],['Hellalight'],loc='upper right')
+ax2.legend([line2],['PPO'],loc='upper right')
 
 fig2.tight_layout()
 
@@ -132,19 +133,21 @@ for line in datalines:
     wait_time_var.append(float(line[15]))
     
 fig3, ax3 = plt.subplots()
-ax3.set_title('Delay')
+ax3.set_title('Wait Time Variance')
 ax3.set_xlabel('Count')
-ax3.set_ylabel('Length (Variance)')
-line3, =ax3.plot(count,queue_length,c='r')
-line4, =ax3.plot(count,queue_length_var,c='b')
-ax3.legend([line3,line4],['Length','Length Variance'])
+ax3.set_ylabel('Time (Variance)')
+
+t3,wait_time_varstat=timeavg(count,wait_time_var,wndavg)
+line3, =ax3.plot(t3,wait_time_varstat,c='r')
+# line4, =ax3.plot(count,queue_length_var,c='b')
+# ax3.legend([line3,line4],['Length','Length Variance'])
 df=pd.DataFrame({
     "Model Name": ["PPO"],
-    "Reward": [np.mean(reward)],
-    "Queue Length": [np.mean(queue_length)],
-    "Delay": [np.mean(delay)],
-    "Waiting Time": [np.mean(wait_time)],
-    "Duration": [np.mean(duration)]
+    "Reward": [np.sum(np.multiply(time,reward))/np.sum(time)],
+    "Queue Length": [np.sum(np.multiply(count,queue_length))/np.sum(count)],
+    "Delay": [np.sum(np.multiply(count,delay))/np.sum(count)],
+    "Waiting Time": [np.sum(np.multiply(count,wait_time))/np.sum(count)],
+    "Duration": [np.sum(np.multiply(count,duration))/np.sum(count)]
 })
 print(df)
 plt.show()

@@ -23,7 +23,6 @@ test_*.py
 *.xml_*
 *.pdf
 *.csv
-*.png
 *-7days*.xml
 
 conf/Deeplight*
