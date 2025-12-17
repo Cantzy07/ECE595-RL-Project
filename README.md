@@ -8,15 +8,9 @@ We've also investigated traffic signal control problems in multi-intersection co
 
 **Introduction**
 
-This project has been published as the following conference paper:
-
-> Hua Wei\*, Guanjie Zheng\*, Huaxiu Yao, Zhenhui Li, IntelliLight: A Reinforcement Learning Approach for Intelligent Traffic Light Control, in Proceedings of the 2018 ACM SIGKDD International Conference on Knowledge Discovery and Data Mining (KDD'18), London, UK, August 2018. 
->
-> (\*Co-First author.)
+This project is an extension to the paper IntelliLight and uses a Proximal Policy Optimization implementation in place of a Deep-Q Network.
 
 
-
-The full paper and demo can be found at the author's website.
 
 
 This project proposes a reinforcement learning based intelligent traffic light control system. Simply run the runexp.py to run the experiment. Please change the parameters in conf/ folder and runexp.py correspondingly if needed. Also, please specify the location of TraCI module in map_computor.py if necessary.
@@ -79,19 +73,3 @@ The files are functioning like this:
 
 
 If you are new to SUMO, hope these slides can help you with a good start (http://personal.psu.edu/hzw77/posts.html#sumo-introduction).
-
-
-
-
-**Citation**
-
-```
-@inproceedings{wei2018intellilight,
-  title={IntelliLight: A Reinforcement Learning Approach for Intelligent Traffic Light Control},
-  author={Wei, Hua and Zheng, Guanjie and Yao, Huaxiu and Li, Zhenhui},
-  booktitle={Proceedings of the 24th ACM SIGKDD International Conference on Knowledge Discovery \& Data Mining},
-  pages={2496--2505},
-  year={2018},
-  organization={ACM}
-}
-```
